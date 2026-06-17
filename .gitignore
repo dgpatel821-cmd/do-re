@@ -41,3 +41,8 @@ app-example
 # generated native folders
 /ios
 /android
+
+credentials.json
+my-release-key.jks
+upload-keystore.jks
+
