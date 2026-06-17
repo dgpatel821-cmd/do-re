@@ -94,7 +94,7 @@ function AppContent() {
 
   // Show first-launch language selector
   if (!hasSelectedLanguage) {
-    return <LanguageSelectScreen />;
+    return <LanguageSelectScreen isFirstLaunch={true} />;
   }
   
   // Custom navigation theme with background color matched to theme

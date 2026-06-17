@@ -18,10 +18,10 @@ import { useColorScheme } from '@/hooks/use-color-scheme';
 import { Colors } from '@/constants/theme';
 
 interface Props {
-  onDone?: () => void; // called after select when shown as first-launch screen
+  isFirstLaunch?: boolean; // true when shown as the first-launch gate (no back stack)
 }
 
-export default function LanguageSelectScreen({ onDone }: Props) {
+export default function LanguageSelectScreen({ isFirstLaunch = false }: Props) {
   const router = useRouter();
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
@@ -39,9 +39,9 @@ export default function LanguageSelectScreen({ onDone }: Props) {
 
   const handleDone = async () => {
     await setLanguage(selected);
-    if (onDone) {
-      onDone();
-    } else {
+    // On first launch: context re-render automatically swaps to the main app — no router.back() needed.
+    // From settings: go back to the previous screen.
+    if (!isFirstLaunch) {
       router.back();
     }
   };
@@ -56,9 +56,14 @@ export default function LanguageSelectScreen({ onDone }: Props) {
 
       {/* Header */}
       <View style={[styles.header, { borderBottomColor: borderColor }]}>
-        <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
-          <Text style={[styles.backText, { color: tintColor }]}>✕</Text>
-        </TouchableOpacity>
+        {/* Hide ✕ on first-launch since there's no back stack */}
+        {isFirstLaunch ? (
+          <View style={styles.backBtn} />
+        ) : (
+          <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
+            <Text style={[styles.backText, { color: tintColor }]}>✕</Text>
+          </TouchableOpacity>
+        )}
         <Text style={[styles.headerTitle, { color: theme.text }]}>Select Language</Text>
         <TouchableOpacity
           style={[styles.doneBtn, { backgroundColor: tintColor }]}
