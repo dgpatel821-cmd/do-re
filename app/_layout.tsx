@@ -19,6 +19,8 @@ import 'react-native-reanimated';
 
 import { useColorScheme, ThemeProvider } from '@/hooks/use-color-scheme';
 import { Colors } from '@/constants/theme';
+import { LanguageProvider, useLanguage } from '@/hooks/LanguageContext';
+import LanguageSelectScreen from '@/app/language-select';
 
 export const unstable_settings = {
   initialRouteName: 'index',
@@ -50,6 +52,7 @@ function AppContent() {
   const colorScheme = useColorScheme();
   const [isConnected, setIsConnected] = useState(true);
   const [isChecking, setIsChecking] = useState(false);
+  const { hasSelectedLanguage } = useLanguage();
 
   const performCheck = async () => {
     const online = await checkInternet();
@@ -88,6 +91,11 @@ function AppContent() {
       Alert.alert('Still Offline', 'Could not establish connection. Please check your data settings.');
     }
   };
+
+  // Show first-launch language selector
+  if (!hasSelectedLanguage) {
+    return <LanguageSelectScreen />;
+  }
   
   // Custom navigation theme with background color matched to theme
   const activeNavigationTheme = {
@@ -146,6 +154,7 @@ function AppContent() {
         <Stack.Screen name="category/[id]" />
         <Stack.Screen name="settings" />
         <Stack.Screen name="settings-detail" />
+        <Stack.Screen name="language-select" />
         <Stack.Screen name="tools/notepad" />
         <Stack.Screen name="tools/fancy-fonts" />
         <Stack.Screen name="tools/link-shortener" />
@@ -159,7 +168,9 @@ function AppContent() {
 export default function RootLayout() {
   return (
     <ThemeProvider>
-      <AppContent />
+      <LanguageProvider>
+        <AppContent />
+      </LanguageProvider>
     </ThemeProvider>
   );
 }

@@ -9,40 +9,45 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { ArrowLeft, Shield, Info, HelpCircle, ChevronRight, ExternalLink, Paintbrush } from 'lucide-react-native';
+import { ArrowLeft, Shield, Info, HelpCircle, ChevronRight, ExternalLink, Paintbrush, Globe } from 'lucide-react-native';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { Colors } from '@/constants/theme';
+import { useLanguage } from '@/hooks/LanguageContext';
+import { LANGUAGES } from '@/utils/translations';
 
 export default function SettingsScreen() {
   const router = useRouter();
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
   const theme = Colors[colorScheme ?? 'light'];
+  const { t, languageCode } = useLanguage();
+
+  const currentLang = LANGUAGES.find((l) => l.code === languageCode);
 
   const settingsOptions = [
     {
-      title: 'App Theme',
+      title: t('theme'),
       icon: Paintbrush,
       iconColor: '#8B5CF6',
       bgColor: isDark ? '#2E2F5E' : '#F5F3FF',
       type: 'theme',
     },
     {
-      title: 'Privacy Policy',
+      title: t('privacy'),
       icon: Shield,
       iconColor: '#10B981',
       bgColor: isDark ? '#064E3B' : '#ECFDF5',
       type: 'privacy',
     },
     {
-      title: 'About Us',
+      title: t('about'),
       icon: Info,
       iconColor: '#3B82F6',
       bgColor: isDark ? '#1E3A8A' : '#EFF6FF',
       type: 'about',
     },
     {
-      title: 'How to Use',
+      title: t('guide'),
       icon: HelpCircle,
       iconColor: '#F59E0B',
       bgColor: isDark ? '#78350F' : '#FFFBEB',
@@ -58,7 +63,7 @@ export default function SettingsScreen() {
           <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
             <ArrowLeft size={24} color={theme.text} />
           </TouchableOpacity>
-          <Text style={[styles.headerTitle, { color: theme.text }]}>Settings</Text>
+          <Text style={[styles.headerTitle, { color: theme.text }]}>{t('settings_title')}</Text>
           <View style={{ width: 40 }} />
         </View>
 
@@ -85,6 +90,30 @@ export default function SettingsScreen() {
             );
           })}
 
+          {/* Language Option */}
+          <TouchableOpacity
+            style={[styles.card, { backgroundColor: theme.card, borderColor: theme.border }]}
+            activeOpacity={0.7}
+            onPress={() => router.push('/language-select')}
+          >
+            <View style={styles.cardHeader}>
+              <View style={styles.headerLeft}>
+                <View style={[styles.iconWrapper, { backgroundColor: isDark ? '#134E4A' : '#ECFDF5' }]}>
+                  <Globe size={20} color="#10B981" />
+                </View>
+                <View>
+                  <Text style={[styles.cardTitle, { color: theme.text }]}>{t('language')}</Text>
+                  {currentLang && (
+                    <Text style={{ fontSize: 12, color: isDark ? '#6B7280' : '#9CA3AF', marginTop: 2 }}>
+                      {currentLang.name} ({currentLang.nativeName})
+                    </Text>
+                  )}
+                </View>
+              </View>
+              <ChevronRight size={18} color="#94A3B8" />
+            </View>
+          </TouchableOpacity>
+
           {/* More Apps Card */}
           <TouchableOpacity
             style={[styles.card, { backgroundColor: theme.card, borderColor: theme.border }]}
@@ -96,7 +125,7 @@ export default function SettingsScreen() {
                 <View style={[styles.iconWrapper, { backgroundColor: isDark ? '#2E2F5E' : '#F5F3FF' }]}>
                   <ExternalLink size={20} color="#8B5CF6" />
                 </View>
-                <Text style={[styles.cardTitle, { color: theme.text }]}>More Apps</Text>
+                <Text style={[styles.cardTitle, { color: theme.text }]}>{t('more_apps')}</Text>
               </View>
               <ExternalLink size={16} color="#94A3B8" />
             </View>

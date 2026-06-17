@@ -40,6 +40,7 @@ import {
 import Svg, { Path } from 'react-native-svg';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { Colors } from '@/constants/theme';
+import { useLanguage } from '@/hooks/LanguageContext';
 
 const { width } = Dimensions.get('window');
 const GRID_SPACING = 18;
@@ -55,56 +56,60 @@ interface ToolItem {
   desc: string;
 }
 
-const ALL_TOOLS: ToolItem[] = [
+// Tool definitions with translation key references instead of hardcoded strings
+const TOOL_DEFS = [
   // PDF Tools
-  { id: 'img-to-pdf', name: 'Image to PDF', route: '/tools/image-to-pdf', category: 'PDF', icon: ImageIcon, color: '#EF4444', desc: 'Photos to PDF' },
-  { id: 'pdf-to-img', name: 'PDF to Image', route: '/tools/pdf-to-image', category: 'PDF', icon: FileText, color: '#3B82F6', desc: 'Pages to JPEG' },
-  { id: 'cam-to-pdf', name: 'Camera to PDF', route: '/tools/camera-to-pdf', category: 'PDF', icon: Camera, color: '#22C55E', desc: 'Scan to PDF' },
-  { id: 'pdf-merge', name: 'PDF Merge', route: '/tools/pdf-merge', category: 'PDF', icon: Archive, color: '#F97316', desc: 'Merge PDFs' },
-  { id: 'pdf-lock', name: 'PDF Lock', route: '/tools/pdf-lock', category: 'PDF', icon: Lock, color: '#06B6D4', desc: 'Password protect' },
-  { id: 'pdf-unlock', name: 'PDF Unlock', route: '/tools/pdf-unlock', category: 'PDF', icon: Unlock, color: '#10B981', desc: 'Remove password' },
-  { id: 'pdf-compress', name: 'PDF Compress', route: '/tools/pdf-compress', category: 'PDF', icon: Minimize2, color: '#84CC16', desc: 'Reduce size' },
-  { id: 'pdf-creations', name: 'My Creations', route: '/tools/my-creations', category: 'PDF', icon: Folder, color: '#EC4899', desc: 'Saved PDFs' },
-  
+  { id: 'img-to-pdf', nameKey: 'tool_img_to_pdf_name', descKey: 'tool_img_to_pdf_desc', route: '/tools/image-to-pdf', category: 'PDF', icon: ImageIcon, color: '#EF4444' },
+  { id: 'pdf-to-img', nameKey: 'tool_pdf_to_img_name', descKey: 'tool_pdf_to_img_desc', route: '/tools/pdf-to-image', category: 'PDF', icon: FileText, color: '#3B82F6' },
+  { id: 'cam-to-pdf', nameKey: 'tool_cam_to_pdf_name', descKey: 'tool_cam_to_pdf_desc', route: '/tools/camera-to-pdf', category: 'PDF', icon: Camera, color: '#22C55E' },
+  { id: 'pdf-merge', nameKey: 'tool_pdf_merge_name', descKey: 'tool_pdf_merge_desc', route: '/tools/pdf-merge', category: 'PDF', icon: Archive, color: '#F97316' },
+  { id: 'pdf-lock', nameKey: 'tool_pdf_lock_name', descKey: 'tool_pdf_lock_desc', route: '/tools/pdf-lock', category: 'PDF', icon: Lock, color: '#06B6D4' },
+  { id: 'pdf-unlock', nameKey: 'tool_pdf_unlock_name', descKey: 'tool_pdf_unlock_desc', route: '/tools/pdf-unlock', category: 'PDF', icon: Unlock, color: '#10B981' },
+  { id: 'pdf-compress', nameKey: 'tool_pdf_compress_name', descKey: 'tool_pdf_compress_desc', route: '/tools/pdf-compress', category: 'PDF', icon: Minimize2, color: '#84CC16' },
+  { id: 'pdf-creations', nameKey: 'tool_pdf_creations_name', descKey: 'tool_pdf_creations_desc', route: '/tools/my-creations', category: 'PDF', icon: Folder, color: '#EC4899' },
   // Image Tools
-  { id: 'img-compress', name: 'Image Compress', route: '/tools/image-compressor', category: 'Image', icon: Sliders, color: '#EAB308', desc: 'Reduce KB' },
-  { id: 'img-to-txt', name: 'Image to Text', route: '/tools/image-to-text', category: 'Image', icon: Type, color: '#06B6D4', desc: 'Extract Text' },
-  { id: 'img-convert', name: 'Image Convert', route: '/tools/image-converter', category: 'Image', icon: RefreshCw, color: '#3B82F6', desc: 'PNG/JPG/WEBP' },
-  
+  { id: 'img-compress', nameKey: 'tool_img_compress_name', descKey: 'tool_img_compress_desc', route: '/tools/image-compressor', category: 'Image', icon: Sliders, color: '#EAB308' },
+  { id: 'img-to-txt', nameKey: 'tool_img_to_txt_name', descKey: 'tool_img_to_txt_desc', route: '/tools/image-to-text', category: 'Image', icon: Type, color: '#06B6D4' },
+  { id: 'img-convert', nameKey: 'tool_img_convert_name', descKey: 'tool_img_convert_desc', route: '/tools/image-converter', category: 'Image', icon: RefreshCw, color: '#3B82F6' },
   // Business Tools
-  { id: 'gst-calc', name: 'GST Calc', route: '/tools/gst-calculator', category: 'Business', icon: Percent, color: '#EC4899', desc: 'Tax calculator' },
-  { id: 'barcode-gen', name: 'Barcode Gen', route: '/tools/barcode-generator', category: 'Business', icon: Barcode, color: '#84CC16', desc: 'Create Barcodes' },
-  { id: 'invoice-maker', name: 'Invoice Maker', route: '/tools/invoice-maker', category: 'Business', icon: Briefcase, color: '#F43F5E', desc: 'Create Invoices' },
-  
+  { id: 'gst-calc', nameKey: 'tool_gst_calc_name', descKey: 'tool_gst_calc_desc', route: '/tools/gst-calculator', category: 'Business', icon: Percent, color: '#EC4899' },
+  { id: 'barcode-gen', nameKey: 'tool_barcode_gen_name', descKey: 'tool_barcode_gen_desc', route: '/tools/barcode-generator', category: 'Business', icon: Barcode, color: '#84CC16' },
+  { id: 'invoice-maker', nameKey: 'tool_invoice_maker_name', descKey: 'tool_invoice_maker_desc', route: '/tools/invoice-maker', category: 'Business', icon: Briefcase, color: '#F43F5E' },
   // Utility Tools
-  { id: 'pass-gen', name: 'Password Gen', route: '/tools/password-generator', category: 'Utility', icon: Key, color: '#14B8A6', desc: 'Secure keys' },
-  { id: 'qr-gen', name: 'QR Generator', route: '/tools/qr-generator', category: 'Utility', icon: QrCode, color: '#EA580C', desc: 'Create QR' },
-  { id: 'notepad', name: 'Notepad Notes', route: '/tools/notepad', category: 'Utility', icon: Pen, color: '#16A34A', desc: 'Take Notes' },
-  
+  { id: 'pass-gen', nameKey: 'tool_pass_gen_name', descKey: 'tool_pass_gen_desc', route: '/tools/password-generator', category: 'Utility', icon: Key, color: '#14B8A6' },
+  { id: 'qr-gen', nameKey: 'tool_qr_gen_name', descKey: 'tool_qr_gen_desc', route: '/tools/qr-generator', category: 'Utility', icon: QrCode, color: '#EA580C' },
+  { id: 'notepad', nameKey: 'tool_notepad_name', descKey: 'tool_notepad_desc', route: '/tools/notepad', category: 'Utility', icon: Pen, color: '#16A34A' },
   // Social Media Tools
-  { id: 'ai-rewriter', name: 'AI Rewriter', route: '/tools/ai-rewriter', category: 'Social', icon: Sparkles, color: '#2563EB', desc: 'AI text rewrite' },
-  { id: 'caption-gen', name: 'Caption Gen', route: '/tools/caption-gen', category: 'Social', icon: Type, color: '#0891B2', desc: 'Post captions' },
-  { id: 'hashtag-gen', name: 'Hashtag Gen', route: '/tools/hashtag-gen', category: 'Social', icon: Hash, color: '#7C3AED', desc: 'Viral hashtags' },
-  { id: 'fancy-font', name: 'Fancy Fonts', route: '/tools/fancy-fonts', category: 'Social', icon: Type, color: '#D97706', desc: 'Fancy texts' },
-  
+  { id: 'ai-rewriter', nameKey: 'tool_ai_rewriter_name', descKey: 'tool_ai_rewriter_desc', route: '/tools/ai-rewriter', category: 'Social', icon: Sparkles, color: '#2563EB' },
+  { id: 'caption-gen', nameKey: 'tool_caption_gen_name', descKey: 'tool_caption_gen_desc', route: '/tools/caption-gen', category: 'Social', icon: Type, color: '#0891B2' },
+  { id: 'hashtag-gen', nameKey: 'tool_hashtag_gen_name', descKey: 'tool_hashtag_gen_desc', route: '/tools/hashtag-gen', category: 'Social', icon: Hash, color: '#7C3AED' },
+  { id: 'fancy-font', nameKey: 'tool_fancy_font_name', descKey: 'tool_fancy_font_desc', route: '/tools/fancy-fonts', category: 'Social', icon: Type, color: '#D97706' },
   // Finance Tools
-  { id: 'emi-calc', name: 'EMI Calculator', route: '/tools/emi-calc', category: 'Finance', icon: Percent, color: '#65A30D', desc: 'Loan EMIs' },
-  { id: 'sip-calc', name: 'SIP Calculator', route: '/tools/sip-calc', category: 'Finance', icon: Sliders, color: '#DC2626', desc: 'SIP returns' },
-  
+  { id: 'emi-calc', nameKey: 'tool_emi_calc_name', descKey: 'tool_emi_calc_desc', route: '/tools/emi-calc', category: 'Finance', icon: Percent, color: '#65A30D' },
+  { id: 'sip-calc', nameKey: 'tool_sip_calc_name', descKey: 'tool_sip_calc_desc', route: '/tools/sip-calc', category: 'Finance', icon: Sliders, color: '#DC2626' },
   // Link Tools
-  { id: 'link-short', name: 'Link Shortener', route: '/tools/link-shortener', category: 'Link', icon: LinkIcon, color: '#9333EA', desc: 'Shorten URLs' },
+  { id: 'link-short', nameKey: 'tool_link_short_name', descKey: 'tool_link_short_desc', route: '/tools/link-shortener', category: 'Link', icon: LinkIcon, color: '#9333EA' },
 ];
 
-const CATEGORIES = ['All', 'PDF', 'Image', 'Business', 'Utility', 'Social', 'Finance', 'Link'];
+const CATEGORY_KEYS = [
+  { key: 'All', tKey: 'cat_All' },
+  { key: 'PDF', tKey: 'cat_PDF' },
+  { key: 'Image', tKey: 'cat_Image' },
+  { key: 'Business', tKey: 'cat_Business' },
+  { key: 'Utility', tKey: 'cat_Utility' },
+  { key: 'Social', tKey: 'cat_Social' },
+  { key: 'Finance', tKey: 'cat_Finance' },
+  { key: 'Link', tKey: 'cat_Link' },
+];
 
-const SECTIONS = [
-  { id: 'PDF', title: 'PDF Options' },
-  { id: 'Image', title: 'Image Tools' },
-  { id: 'Business', title: 'Business Tools' },
-  { id: 'Utility', title: 'Utility Tools' },
-  { id: 'Social', title: 'Social Media' },
-  { id: 'Finance', title: 'Finance Tools' },
-  { id: 'Link', title: 'Link Tools' },
+const SECTION_KEYS = [
+  { id: 'PDF', tKey: 'sec_PDF' },
+  { id: 'Image', tKey: 'sec_Image' },
+  { id: 'Business', tKey: 'sec_Business' },
+  { id: 'Utility', tKey: 'sec_Utility' },
+  { id: 'Social', tKey: 'sec_Social' },
+  { id: 'Finance', tKey: 'sec_Finance' },
+  { id: 'Link', tKey: 'sec_Link' },
 ];
 
 function DocumentIcon({ color, width = 34, height = 41 }: { color: string; width?: number; height?: number }) {
@@ -127,27 +132,32 @@ export default function HomeScreen() {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
   const theme = Colors[colorScheme ?? 'light'];
+  const { t } = useLanguage();
 
   const [selectedCategory, setSelectedCategory] = useState('All');
 
   interface SectionData {
     id: string;
     title: string;
+    tKey: string;
     tools: ToolItem[];
   }
 
+  const ALL_TOOLS: ToolItem[] = useMemo(() => TOOL_DEFS.map(def => ({
+    ...def,
+    name: t(def.nameKey),
+    desc: t(def.descKey),
+  })), [t]);
+
   const sections = useMemo<SectionData[]>(() => {
-    return SECTIONS.map(sec => {
-      const tools = ALL_TOOLS.filter(t => t.category === sec.id);
-      return {
-        ...sec,
-        tools,
-      };
+    return SECTION_KEYS.map(sec => {
+      const tools = ALL_TOOLS.filter(tool => tool.category === sec.id);
+      return { ...sec, title: t(sec.tKey), tools };
     }).filter(sec => {
       const matchesCategory = selectedCategory === 'All' || selectedCategory === sec.id;
       return matchesCategory && sec.tools.length > 0;
     });
-  }, [selectedCategory]);
+  }, [selectedCategory, ALL_TOOLS, t]);
 
   const renderToolCard = ({ item }: { item: ToolItem }) => {
     return (
@@ -225,12 +235,12 @@ export default function HomeScreen() {
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.categoryScroll}
           >
-            {CATEGORIES.map((item) => {
-              const isActive = selectedCategory === item;
+            {CATEGORY_KEYS.map(({ key, tKey }) => {
+              const isActive = selectedCategory === key;
               return (
                 <TouchableOpacity
-                  key={item}
-                  onPress={() => setSelectedCategory(item)}
+                  key={key}
+                  onPress={() => setSelectedCategory(key)}
                   style={[
                     styles.categoryChip,
                     isActive
@@ -245,7 +255,7 @@ export default function HomeScreen() {
                       { color: isActive ? '#FFFFFF' : isDark ? '#CBD5E1' : '#64748B' }
                     ]}
                   >
-                    {item}
+                    {t(tKey)}
                   </Text>
                 </TouchableOpacity>
               );
