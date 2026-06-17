@@ -2,7 +2,7 @@
   "expo": {
     "name": "Document Reader: PDF, DOC, IMG",
     "slug": "multikit",
-    "version": "1.0.0",
+    "version": "1.1.2",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "splash": {
@@ -22,6 +22,7 @@
     },
     "android": {
       "package": "com.dgpatelk.mobileapp",
+      "versionCode": 3,
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
