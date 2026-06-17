@@ -43,6 +43,5 @@ app-example
 /android
 
 credentials.json
-my-release-key.jks
 upload-keystore.jks
 
